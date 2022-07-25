@@ -1,3 +1,4 @@
+import sys
 from PreferredSemantics import *
 from GroundedSemantics import *
 from SparseMatrix import *
@@ -18,6 +19,8 @@ if __name__ == "__main__":
     argNum = int(input('Enter the number of arguments:'))
     m = int(input('Enter m:'))
     n = int(input('Enter n:'))
+    if n < m:
+        sys.exit()
     myMatrix = SparseMatrix(argNum, 'pr.npz')
     data = myMatrix.getData(0.25)
     print(data.A)
