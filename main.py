@@ -1,7 +1,7 @@
 import sys
-from PreferredSemantics import *
-from GroundedSemantics import *
-from SparseMatrix import *
+from PreferredSemantics import PreferredSemantics
+from GroundedSemantics import GroundedSemantics
+from SparseMatrix import SparseMatrix
 from scipy import sparse
 
 
@@ -24,5 +24,5 @@ if __name__ == "__main__":
     myMatrix = SparseMatrix(argNum, 'pr.npz')
     data = myMatrix.getData(0.25)
     print(data.A)
-    #testGr(argNum, m, n, data)
+    # testGr(argNum, m, n, data)
     testPr(argNum, m, n, data)
