@@ -1,1 +1,1 @@
-This project aims to provide solutions for graded grounded and preferred labellings of AAFs.
+Based on graded labellings, this project aims to provide solutions for computational problems of AAFs.
