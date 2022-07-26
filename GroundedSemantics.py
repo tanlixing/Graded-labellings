@@ -1,7 +1,6 @@
-import copy
-from Argument import *
 from scipy import sparse
 import numpy as np
+from Argument import Argument
 
 
 class GroundedSemantics:
@@ -16,6 +15,7 @@ class GroundedSemantics:
         self.argNum = argNum
         self.argList = [Argument(i) for i in range(argNum)]
         self.labellings = [GroundedSemantics.UNDEC for i in range(argNum)]
+        self.undecList = []
 
     def initIn(self):
         for i in range(self.argNum):
@@ -23,7 +23,6 @@ class GroundedSemantics:
                 self.labellings[i] = GroundedSemantics.IN
 
     def initArgList(self):
-        undecNum = 0
         for i in range(self.argNum):
             for j in range(self.argNum):
                 if self.data[i, j] != 0:
@@ -42,10 +41,7 @@ class GroundedSemantics:
             if count == self.n:
                 self.labellings[i] = GroundedSemantics.OUT
             else:
-                undecNum = undecNum + 1
-        print(self.labellings)
-        print(undecNum)
-        return undecNum
+                self.undecList.append(i)
 
     def checkValidAttackerNum(self, index: int):
         count = 0
@@ -54,15 +50,6 @@ class GroundedSemantics:
                 count += 1
         return count
 
-    def IsContinue(self, s: int):
-        if s == 0:
-            return False
-        for i in range(self.argNum):
-            if self.labellings[i] == GroundedSemantics.UNDEC and \
-               self.checkValidAttackerNum(i) >= self.m:
-                return False
-        return True
-
     def inLab(self, labellings: list):
         E = set()
         for i in range(self.argNum):
@@ -70,7 +57,7 @@ class GroundedSemantics:
                 E.add(i)
         return E
 
-    def updateOUT(self, labellings: list, undecNum: int):
+    def updateOUT(self, labellings: list):
         for i in range(self.argNum):
             count = 0
             for j in self.argList[i].setAttackers:
@@ -79,24 +66,32 @@ class GroundedSemantics:
                     if count == self.n and\
                        labellings[i] == GroundedSemantics.UNDEC:
                         labellings[i] = GroundedSemantics.OUT
-                        undecNum = undecNum - 1
                         break
-        return undecNum
+
+    def SelectArg(self, labellings: list):
+        for item in self.undecList:
+            if labellings[
+                    item] == GroundedSemantics.UNDEC and self.checkValidAttackerNum(
+                        item) < self.m:
+                return item
+        return -1
 
     def ComputGr(self):
-        undecNum = self.initArgList()
-        while self.IsContinue(undecNum):
-            for i in range(self.argNum):
-                if self.labellings[i] == GroundedSemantics.UNDEC and \
-                   self.checkValidAttackerNum(i) < self.m:
-                    self.labellings[i] = GroundedSemantics.IN
-                    undecNum = undecNum - 1
-                    undecNum = self.updateOUT(self.labellings, undecNum)
-        GroundedSemantics.setGrExt.append(self.inLab(self.labellings))
-        print(GroundedSemantics.setGrExt)
+        self.initArgList()
+        # self.undecList.sort(key=lambda x: self.argList[x].getNeighbornum(),reverse=True)
+        if 0 == len(self.undecList):
+            print(self.inLab(self.labellings))
+            return
+        index = self.SelectArg(self.labellings)
+        while -1 != index:
+            self.labellings[index] = GroundedSemantics.IN
+            self.updateOUT(self.labellings)
+            index = self.SelectArg(self.labellings)
+        print(self.inLab(self.labellings))
 
 
 if __name__ == "__main__":
+    '''
     Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
                        [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
@@ -104,8 +99,8 @@ if __name__ == "__main__":
     gr = GroundedSemantics(6, myMatrix, 2, 2)
     gr.ComputGr()
     '''
+
     Matrix = np.array([[1, 1, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]])
     myMatrix = sparse.csr_matrix(Matrix)
     gr = GroundedSemantics(4, myMatrix, 2, 2)
     gr.ComputGr()
-    '''
