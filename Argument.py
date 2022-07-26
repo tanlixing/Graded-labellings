@@ -11,14 +11,15 @@ class Argument:
     def addAttackers(self, arg):
         self.setAttackers.add(arg)
 
+    def getNeighbornum(self):
+        return len(self.setAttackers) + len(self.setAttacks)
+
 
 if __name__ == "__main__":
-    argument = Argument(1)
-    argument.addAttacks(2)
-    argument.addAttacks(3)
-    b = Argument(2)
-    b.addAttacks(4)
-    b.addAttacks(5)
+    a = Argument(1)
+    a.addAttacks(2)
+    a.addAttacks(3)
+    a.addAttackers(4)
+    a.addAttackers(5)
 
-    print(b.setAttacks)
-    print(len(b.setAttacks))
+    print(a.getNeighbornum())
