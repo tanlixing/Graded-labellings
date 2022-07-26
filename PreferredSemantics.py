@@ -1,6 +1,6 @@
 import copy
 import string
-from Argument import *
+from Argument import Argument
 from scipy import sparse
 import numpy as np
 
@@ -17,6 +17,7 @@ class PreferredSemantics:
         self.argNum = argNum
         self.argList = [Argument(i) for i in range(argNum)]
         self.labellings = [PreferredSemantics.BLANK for i in range(argNum)]
+        self.blankList = []
 
     def initIn(self):
         for i in range(self.argNum):
@@ -24,7 +25,6 @@ class PreferredSemantics:
                 self.labellings[i] = PreferredSemantics.IN
 
     def initArgList(self):
-        blankNum = 0
         for i in range(self.argNum):
             for j in range(self.argNum):
                 if self.data[i, j] != 0:
@@ -43,23 +43,18 @@ class PreferredSemantics:
             if count == self.n:
                 self.labellings[i] = PreferredSemantics.OUT
             else:
-                blankNum += 1
-        return blankNum
+                self.blankList.append(i)
 
     def updateOUT(self, labellings: list):
-        updateNum = 0
         for i in range(self.argNum):
             count = 0
             for j in self.argList[i].setAttackers:
                 if labellings[j] == PreferredSemantics.IN:
                     count += 1
-                    if count == self.n:
-                        if labellings[i] != PreferredSemantics.OUT:
-                            if labellings[i] == PreferredSemantics.BLANK:
-                                updateNum = updateNum + 1
-                            labellings[i] = PreferredSemantics.OUT
+                    if count == self.n and labellings[
+                            i] != PreferredSemantics.OUT:
+                        labellings[i] = PreferredSemantics.OUT
                         break
-        return updateNum
 
     def TRANS(self, x: int, labellings: list, label: string):
         labellingsTmp = copy.deepcopy(labellings)
@@ -74,7 +69,7 @@ class PreferredSemantics:
         return E
 
     def CheckINValid(self, labellings: list):
-        #print(labellings)
+        # print(labellings)
         for i in range(self.argNum):
             if labellings[i] != PreferredSemantics.IN:
                 continue
@@ -86,12 +81,19 @@ class PreferredSemantics:
                         return False
         return True
 
-    def FindExt(self, labellings: list, blankNum: int):
-        if 0 == blankNum:
+    def SelectArg(self, labellings: list):
+        for item in self.blankList:
+            if labellings[item] == PreferredSemantics.BLANK:
+                return item
+        return -1
+
+    def FindExt(self, labellings: list):
+        index = self.SelectArg(labellings)
+        if -1 == index:
             if self.CheckINValid(labellings):
-                #print(labellings)
+                # print(labellings)
                 E = self.inLab(labellings)
-                #print(E)
+                # print(E)
                 if len(PreferredSemantics.setPrExt) == 0:
                     PreferredSemantics.setPrExt.append(E)
                 else:
@@ -102,17 +104,20 @@ class PreferredSemantics:
                             break
                     if flag:
                         PreferredSemantics.setPrExt.append(E)
-                        return
+            return
 
-        for i in range(len(labellings)):
-            if labellings[i] == PreferredSemantics.BLANK:
-                labellingsTmp = self.TRANS(i, labellings, PreferredSemantics.IN)
-                self.FindExt(labellingsTmp, blankNum - 1 - self.updateOUT(labellingsTmp))
-                labellingsTmp = self.TRANS(i, labellings, PreferredSemantics.UNDEC)
-                self.FindExt(labellingsTmp, blankNum - 1)
+        labellingsTmp = self.TRANS(index, labellings, PreferredSemantics.IN)
+        self.updateOUT(labellingsTmp)
+        self.FindExt(labellingsTmp)
+        labellingsTmp = self.TRANS(index, labellings, PreferredSemantics.UNDEC)
+        self.FindExt(labellingsTmp)
 
     def EnumPr(self):
-        self.FindExt(self.labellings, self.initArgList())
+        self.initArgList()
+        self.blankList.sort(key=lambda x: self.argList[x].getNeighbornum(),
+                            reverse=True)
+        # print(self.blankList)
+        self.FindExt(self.labellings)
         print(PreferredSemantics.setPrExt)
 
 
@@ -120,14 +125,14 @@ if __name__ == "__main__":
     '''
     Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
-                       [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
+                       [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]])
     myMatrix = sparse.csr_matrix(Matrix)
     pr = PreferredSemantics(6, myMatrix, 2, 2)
     pr.EnumPr()
     '''
     Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
-                       [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]])
+                       [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
     myMatrix = sparse.csr_matrix(Matrix)
     pr = PreferredSemantics(6, myMatrix, 2, 2)
     pr.EnumPr()
