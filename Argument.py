@@ -2,17 +2,25 @@ class Argument:
 
     def __init__(self, id):
         self.__id = id
-        self.setAttacks = set()
-        self.setAttackers = set()
+        self.Attacks = set()
+        self.Attackers = set()
+        self.INAttackers = set()
+        self.UNDECAttackers = set()
 
     def addAttacks(self, arg):
-        self.setAttacks.add(arg)
+        self.Attacks.add(arg)
 
     def addAttackers(self, arg):
-        self.setAttackers.add(arg)
+        self.Attackers.add(arg)
+
+    def addINAttackers(self, arg):
+        self.INAttackers.add(arg)
+
+    def addUNDECAttackers(self, arg):
+        self.UNDECAttackers.add(arg)
 
     def getNeighbornum(self):
-        return len(self.setAttackers) + len(self.setAttacks)
+        return len(self.Attackers) + len(self.Attacks)
 
 
 if __name__ == "__main__":
@@ -23,3 +31,4 @@ if __name__ == "__main__":
     a.addAttackers(5)
 
     print(a.getNeighbornum())
+    print(a.Attackers)
