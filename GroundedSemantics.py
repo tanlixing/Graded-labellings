@@ -19,8 +19,10 @@ class GroundedSemantics:
 
     def initIn(self):
         for i in range(self.argNum):
-            if len(self.argList[i].setAttackers) < self.m:
+            if len(self.argList[i].Attackers) < self.m:
                 self.labellings[i] = GroundedSemantics.IN
+                for item in self.argList[i].Attacks:
+                    self.argList[item].addINAttackers(i)
 
     def initArgList(self):
         for i in range(self.argNum):
@@ -30,22 +32,14 @@ class GroundedSemantics:
                     self.argList[j].addAttackers(i)
         self.initIn()
         for i in range(self.argNum):
-            if self.labellings[i] == GroundedSemantics.IN:
-                continue
-            count = 0
-            for j in self.argList[i].setAttackers:
-                if self.labellings[j] == GroundedSemantics.IN:
-                    count += 1
-                    if count == self.n:
-                        break
-            if count == self.n:
+            if len(self.argList[i].INAttackers) >= self.n:
                 self.labellings[i] = GroundedSemantics.OUT
             else:
                 self.undecList.append(i)
 
     def checkValidAttackerNum(self, index: int):
         count = 0
-        for i in self.argList[index].setAttackers:
+        for i in self.argList[index].Attackers:
             if self.labellings[i] != GroundedSemantics.OUT:
                 count += 1
         return count
@@ -60,7 +54,7 @@ class GroundedSemantics:
     def updateOUT(self, labellings: list):
         for i in range(self.argNum):
             count = 0
-            for j in self.argList[i].setAttackers:
+            for j in self.argList[i].Attackers:
                 if labellings[j] == GroundedSemantics.IN:
                     count += 1
                     if count == self.n and\
