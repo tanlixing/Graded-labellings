@@ -23,6 +23,6 @@ if __name__ == "__main__":
         sys.exit()
     myMatrix = SparseMatrix(argNum, 'pr.npz')
     data = myMatrix.getData(0.25)
-    print(data.A)
+    # print(data.A)
     # testGr(argNum, m, n, data)
     testPr(argNum, m, n, data)
