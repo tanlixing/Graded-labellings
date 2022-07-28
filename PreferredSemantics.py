@@ -62,17 +62,27 @@ class PreferredSemantics:
                 E.add(i)
         return E
 
-    def CheckINValid(self, labellings: list):
+    def CheckValidAttackerNum(self, labellings: list, index: int):
+        count = 0
+        for i in self.argList[index].Attackers:
+            if labellings[i] != PreferredSemantics.OUT:
+                count += 1
+        return count >= self.m
+
+    def CheckINAttackerNum(self, labellings: list, index: int):
+        count = 0
+        for i in self.argList[index].Attackers:
+            if labellings[i] == PreferredSemantics.IN:
+                count += 1
+        return count < self.n
+
+    def CheckValid(self, labellings: list):
         # print(labellings)
         for i in range(self.argNum):
-            if labellings[i] != PreferredSemantics.IN:
-                continue
-            count = 0
-            for j in self.argList[i].Attackers:
-                if labellings[j] != PreferredSemantics.OUT:
-                    count += 1
-                    if count == self.m:
-                        return False
+            if labellings[i] == PreferredSemantics.IN and self.CheckValidAttackerNum(labellings, i):
+                return False
+            elif labellings[i] == PreferredSemantics.OUT and self.CheckINAttackerNum(labellings, i):
+                return False
         return True
 
     def SelectArg(self, labellings: list):
@@ -84,7 +94,7 @@ class PreferredSemantics:
     def FindExt(self, labellings: list):
         index = self.SelectArg(labellings)
         if -1 == index:
-            if self.CheckINValid(labellings):
+            if self.CheckValid(labellings):
                 # print(labellings)
                 E = self.inLab(labellings)
                 # print(E)
@@ -119,16 +129,38 @@ class PreferredSemantics:
 
 if __name__ == "__main__":
     '''
-    Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
-                       [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
-                       [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]])
-    myMatrix = sparse.csr_matrix(Matrix)
-    pr = PreferredSemantics(6, myMatrix, 2, 2)
-    pr.EnumPr()
+    Matrix1 = np.array([[0, 1, 0], [0, 0, 1], [0, 1, 0]])
+    argNum = 3
+    m = n = 1
+    myMatrix = sparse.csr_matrix(Matrix1)
     '''
-    Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
-                       [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
-                       [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
-    myMatrix = sparse.csr_matrix(Matrix)
-    pr = PreferredSemantics(6, myMatrix, 2, 2)
+    '''
+    Matrix2 = np.array([[0, 1, 0, 0], [1, 0, 1, 0], [0, 0, 0, 1], [0, 1, 0, 0]])
+    argNum = 4
+    m = n = 1
+    myMatrix = sparse.csr_matrix(Matrix2)
+    '''
+    '''
+    Matrix3 = np.array([[0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0],
+                        [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0]])
+    argNum = 6
+    m = n = 1
+    myMatrix = sparse.csr_matrix(Matrix3)
+    '''
+    '''
+    Matrix4 = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
+                        [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]])
+    argNum = 6
+    m = n = 2
+    myMatrix = sparse.csr_matrix(Matrix4)
+    '''
+    Matrix5 = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
+                        [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
+    argNum = 6
+    m = n = 2
+    myMatrix = sparse.csr_matrix(Matrix5)
+    pr = PreferredSemantics(argNum, myMatrix, m, n)
     pr.EnumPr()
