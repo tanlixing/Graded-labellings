@@ -21,8 +21,10 @@ class PreferredSemantics:
 
     def initIn(self):
         for i in range(self.argNum):
-            if len(self.argList[i].setAttackers) < self.m:
+            if len(self.argList[i].Attackers) < self.m:
                 self.labellings[i] = PreferredSemantics.IN
+                for item in self.argList[i].Attacks:
+                    self.argList[item].addINAttackers(i)
 
     def initArgList(self):
         for i in range(self.argNum):
@@ -32,15 +34,7 @@ class PreferredSemantics:
                     self.argList[j].addAttackers(i)
         self.initIn()
         for i in range(self.argNum):
-            if self.labellings[i] == PreferredSemantics.IN:
-                continue
-            count = 0
-            for j in self.argList[i].setAttackers:
-                if self.labellings[j] == PreferredSemantics.IN:
-                    count += 1
-                    if count == self.n:
-                        break
-            if count == self.n:
+            if len(self.argList[i].INAttackers) >= self.n:
                 self.labellings[i] = PreferredSemantics.OUT
             else:
                 self.blankList.append(i)
@@ -48,7 +42,7 @@ class PreferredSemantics:
     def updateOUT(self, labellings: list):
         for i in range(self.argNum):
             count = 0
-            for j in self.argList[i].setAttackers:
+            for j in self.argList[i].Attackers:
                 if labellings[j] == PreferredSemantics.IN:
                     count += 1
                     if count == self.n and labellings[
@@ -74,7 +68,7 @@ class PreferredSemantics:
             if labellings[i] != PreferredSemantics.IN:
                 continue
             count = 0
-            for j in self.argList[i].setAttackers:
+            for j in self.argList[i].Attackers:
                 if labellings[j] != PreferredSemantics.OUT:
                     count += 1
                     if count == self.m:
@@ -99,7 +93,9 @@ class PreferredSemantics:
                 else:
                     flag = True
                     for S in PreferredSemantics.setPrExt:
-                        if E.issubset(S):
+                        if S.issubset(E):
+                            PreferredSemantics.setPrExt.remove(S)
+                        elif E.issubset(S):
                             flag = False
                             break
                     if flag:
