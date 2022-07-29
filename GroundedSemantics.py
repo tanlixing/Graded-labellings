@@ -1,12 +1,10 @@
+import string
 from scipy import sparse
 import numpy as np
 from Argument import Argument
 
 
 class GroundedSemantics:
-    # 常量定义区域
-    (OUT, IN, UNDEC) = ('0', '1', '3')
-    setGrExt = []
 
     def __init__(self, argNum: int, data: sparse.csr_matrix, m: int, n: int):
         self.m = m
@@ -14,15 +12,28 @@ class GroundedSemantics:
         self.data = data
         self.argNum = argNum
         self.argList = [Argument(i) for i in range(argNum)]
-        self.labellings = [GroundedSemantics.UNDEC for i in range(argNum)]
+        self.labellings = [Argument.UNDEC for i in range(argNum)]
         self.undecList = []
+
+    def addEffAttacker(self, x: int, label: string):
+        for item in self.argList[x].Attacks:
+            if label == Argument.IN:
+                self.argList[item].addINAttackers(x)
+            elif label == Argument.UNDEC:
+                self.argList[item].addUNDECAttackers(x)
+
+    def removeEffAttacker(self, x: int, label: string):
+        for item in self.argList[x].Attacks:
+            if label == Argument.IN:
+                self.argList[item].removeINAttackers(x)
+            elif label == Argument.UNDEC:
+                self.argList[item].removeUNDECAttackers(x)
 
     def initIn(self):
         for i in range(self.argNum):
             if len(self.argList[i].Attackers) < self.m:
-                self.labellings[i] = GroundedSemantics.IN
-                for item in self.argList[i].Attacks:
-                    self.argList[item].addINAttackers(i)
+                self.labellings[i] = Argument.IN
+                self.addEffAttacker(i, Argument.IN)
 
     def initArgList(self):
         for i in range(self.argNum):
@@ -33,41 +44,31 @@ class GroundedSemantics:
         self.initIn()
         for i in range(self.argNum):
             if len(self.argList[i].INAttackers) >= self.n:
-                self.labellings[i] = GroundedSemantics.OUT
+                self.labellings[i] = Argument.OUT
             else:
+                self.addEffAttacker(i, Argument.UNDEC)
                 self.undecList.append(i)
-
-    def checkValidAttackerNum(self, index: int):
-        count = 0
-        for i in self.argList[index].Attackers:
-            if self.labellings[i] != GroundedSemantics.OUT:
-                count += 1
-        return count
 
     def inLab(self, labellings: list):
         E = set()
         for i in range(self.argNum):
-            if labellings[i] == GroundedSemantics.IN:
+            if labellings[i] == Argument.IN:
                 E.add(i)
         return E
 
-    def updateOUT(self, labellings: list):
-        for i in range(self.argNum):
-            count = 0
-            for j in self.argList[i].Attackers:
-                if labellings[j] == GroundedSemantics.IN:
-                    count += 1
-                    if count == self.n and\
-                       labellings[i] == GroundedSemantics.UNDEC:
-                        labellings[i] = GroundedSemantics.OUT
-                        break
+    def updateOUT(self, x: int, labellings: list):
+        for att in self.argList[x].Attacks:
+            if labellings[att] == Argument.OUT:
+                continue
+            if len(self.argList[att].INAttackers) >= self.n:
+                self.removeEffAttacker(att, labellings[att])
+                labellings[att] = Argument.OUT
 
     def SelectArg(self, labellings: list):
-        for item in self.undecList:
-            if labellings[
-                    item] == GroundedSemantics.UNDEC and self.checkValidAttackerNum(
-                        item) < self.m:
-                return item
+        for i in self.undecList:
+            if labellings[i] == Argument.UNDEC and\
+                 len(self.argList[i].INAttackers) + len(self.argList[i].UNDECAttackers) < self.m:
+                return i
         return -1
 
     def ComputGr(self):
@@ -76,25 +77,35 @@ class GroundedSemantics:
         if 0 == len(self.undecList):
             print(self.inLab(self.labellings))
             return
+        # print(self.labellings)
         index = self.SelectArg(self.labellings)
         while -1 != index:
-            self.labellings[index] = GroundedSemantics.IN
-            self.updateOUT(self.labellings)
+            self.labellings[index] = Argument.IN
+            self.addEffAttacker(index, Argument.IN)
+            self.updateOUT(index, self.labellings)
             index = self.SelectArg(self.labellings)
+        # print(self.labellings)
         print(self.inLab(self.labellings))
 
 
 if __name__ == "__main__":
     '''
-    Matrix = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
-                       [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
-                       [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
-    myMatrix = sparse.csr_matrix(Matrix)
-    gr = GroundedSemantics(6, myMatrix, 2, 2)
-    gr.ComputGr()
+    Matrix1 = np.array([[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1], [0, 0, 1, 0, 0]])
+    myMatrix = sparse.csr_matrix(Matrix1)
+    argNum = 5
+    m = n = 1
     '''
-
-    Matrix = np.array([[1, 1, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]])
-    myMatrix = sparse.csr_matrix(Matrix)
-    gr = GroundedSemantics(4, myMatrix, 2, 2)
+    '''
+    Matrix2 = np.array([[1, 1, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]])
+    myMatrix = sparse.csr_matrix(Matrix2)
+    argNum = 4
+    m = n = 2
+    '''
+    Matrix3 = np.array([[0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0],
+                        [0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 0, 1],
+                        [0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 0]])
+    myMatrix = sparse.csr_matrix(Matrix3)
+    argNum = 6
+    m = n = 2
+    gr = GroundedSemantics(argNum, myMatrix, m, n)
     gr.ComputGr()
