@@ -1,4 +1,6 @@
 class Argument:
+    # Labels
+    (OUT, IN, UNDEC, BLANK) = ('0', '1', '3', '9')
 
     def __init__(self, id):
         self.__id = id
@@ -18,6 +20,12 @@ class Argument:
 
     def addUNDECAttackers(self, arg):
         self.UNDECAttackers.add(arg)
+
+    def removeINAttackers(self, arg):
+        self.INAttackers.remove(arg)
+
+    def removeUNDECAttackers(self, arg):
+        self.UNDECAttackers.remove(arg)
 
     def getNeighbornum(self):
         return len(self.Attackers) + len(self.Attacks)
