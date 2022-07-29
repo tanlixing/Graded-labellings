@@ -6,8 +6,6 @@ import numpy as np
 
 
 class PreferredSemantics:
-    # 常量定义区域
-    (OUT, IN, UNDEC, BLANK) = ('0', '1', '3', '9')
     setPrExt = []
 
     def __init__(self, argNum: int, data: sparse.csr_matrix, m: int, n: int):
@@ -16,13 +14,13 @@ class PreferredSemantics:
         self.data = data
         self.argNum = argNum
         self.argList = [Argument(i) for i in range(argNum)]
-        self.labellings = [PreferredSemantics.BLANK for i in range(argNum)]
+        self.labellings = [Argument.BLANK for i in range(argNum)]
         self.blankList = []
 
     def initIn(self):
         for i in range(self.argNum):
             if len(self.argList[i].Attackers) < self.m:
-                self.labellings[i] = PreferredSemantics.IN
+                self.labellings[i] = Argument.IN
                 for item in self.argList[i].Attacks:
                     self.argList[item].addINAttackers(i)
 
@@ -35,7 +33,7 @@ class PreferredSemantics:
         self.initIn()
         for i in range(self.argNum):
             if len(self.argList[i].INAttackers) >= self.n:
-                self.labellings[i] = PreferredSemantics.OUT
+                self.labellings[i] = Argument.OUT
             else:
                 self.blankList.append(i)
 
@@ -43,11 +41,11 @@ class PreferredSemantics:
         for i in range(self.argNum):
             count = 0
             for j in self.argList[i].Attackers:
-                if labellings[j] == PreferredSemantics.IN:
+                if labellings[j] == Argument.IN:
                     count += 1
                     if count == self.n and labellings[
-                            i] != PreferredSemantics.OUT:
-                        labellings[i] = PreferredSemantics.OUT
+                            i] != Argument.OUT:
+                        labellings[i] = Argument.OUT
                         break
 
     def TRANS(self, x: int, labellings: list, label: string):
@@ -58,36 +56,36 @@ class PreferredSemantics:
     def inLab(self, labellings: list):
         E = set()
         for i in range(self.argNum):
-            if labellings[i] == PreferredSemantics.IN:
+            if labellings[i] == Argument.IN:
                 E.add(i)
         return E
 
     def CheckValidAttackerNum(self, labellings: list, index: int):
         count = 0
         for i in self.argList[index].Attackers:
-            if labellings[i] != PreferredSemantics.OUT:
+            if labellings[i] != Argument.OUT:
                 count += 1
         return count >= self.m
 
     def CheckINAttackerNum(self, labellings: list, index: int):
         count = 0
         for i in self.argList[index].Attackers:
-            if labellings[i] == PreferredSemantics.IN:
+            if labellings[i] == Argument.IN:
                 count += 1
         return count < self.n
 
     def CheckValid(self, labellings: list):
         # print(labellings)
         for i in range(self.argNum):
-            if labellings[i] == PreferredSemantics.IN and self.CheckValidAttackerNum(labellings, i):
+            if labellings[i] == Argument.IN and self.CheckValidAttackerNum(labellings, i):
                 return False
-            elif labellings[i] == PreferredSemantics.OUT and self.CheckINAttackerNum(labellings, i):
+            elif labellings[i] == Argument.OUT and self.CheckINAttackerNum(labellings, i):
                 return False
         return True
 
     def SelectArg(self, labellings: list):
         for item in self.blankList:
-            if labellings[item] == PreferredSemantics.BLANK:
+            if labellings[item] == Argument.BLANK:
                 return item
         return -1
 
@@ -112,10 +110,10 @@ class PreferredSemantics:
                         PreferredSemantics.setPrExt.append(E)
             return
 
-        labellingsTmp = self.TRANS(index, labellings, PreferredSemantics.IN)
+        labellingsTmp = self.TRANS(index, labellings, Argument.IN)
         self.updateOUT(labellingsTmp)
         self.FindExt(labellingsTmp)
-        labellingsTmp = self.TRANS(index, labellings, PreferredSemantics.UNDEC)
+        labellingsTmp = self.TRANS(index, labellings, Argument.UNDEC)
         self.FindExt(labellingsTmp)
 
     def EnumPr(self):
