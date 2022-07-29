@@ -20,7 +20,7 @@ if __name__ == "__main__":
     m = int(input('Enter m:'))
     n = int(input('Enter n:'))
     if n < m:
-        print('It should satisfies n ≥ m!')
+        print('It should satisfy n ≥ m!')
         sys.exit()
     myMatrix = SparseMatrix(argNum, 'pr.npz')
     data = myMatrix.getData(0.25)
