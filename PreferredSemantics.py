@@ -78,8 +78,10 @@ class PreferredSemantics:
         # print(labellings)
         for i in range(self.argNum):
             if labellings[i] == Argument.IN and self.CheckValidAttackerNum(labellings, i):
+                print("The labelling does not satisfy the m-Rein criterion!")
                 return False
             elif labellings[i] == Argument.OUT and self.CheckINAttackerNum(labellings, i):
+                print("The labelling does not satisfy the η-Ro criterion!")
                 return False
         return True
 
@@ -92,6 +94,7 @@ class PreferredSemantics:
     def FindExt(self, labellings: list):
         index = self.SelectArg(labellings)
         if -1 == index:
+            print(labellings)
             if self.CheckValid(labellings):
                 # print(labellings)
                 E = self.inLab(labellings)
